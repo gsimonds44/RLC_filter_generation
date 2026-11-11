@@ -69,4 +69,12 @@ An interactive tool that loads a checkpoint's learned token embeddings (componen
 The results below show the model's per
 
 
+<img width="908" height="721" alt="reduced_inferance" src="https://github.com/user-attachments/assets/125439c2-38f0-4ac7-84aa-53fe834f94f8" />
+
+
+<img width="1056" height="530" alt="Screenshot 2026-11-10 at 6 58 09 PM" src="https://github.com/user-attachments/assets/a29a34d1-dc3a-48e5-aeb7-b6b3a8d00bc8" />
+
+
+<img width="1049" height="599" alt="Screenshot 2026-11-10 at 7 05 24 PM" src="https://github.com/user-attachments/assets/ae0ae8ee-7b1e-4f6a-9b52-65fc2d3b59c2" />
+
 
