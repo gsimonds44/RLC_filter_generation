@@ -1,12 +1,11 @@
-# RLC_filter_generation
 
 # RLC Filter Generation Model
 
-This project develops and trains a generative transformer model to design electronic schematics for multi-stage passive RLC (resistor/inductor/capacitor) filter circuits containing between 3 and 12 discrete components. Given a target AC transfer function as a prompt (magnitude and phase response plotted against frequency), the model generates a set of tokens defining the netlist, component types, values, and wiring - whose transfer function approximates the target. This process represents a novel application of transformer models, which are capible of learning the *language* of electronic physics just as they learn any other language. 
+This project develops and trains a generative transformer model to design electronic schematics for multi-stage passive RLC (resistor/inductor/capacitor) filter circuits containing between 2 and 12 discrete components. Given a target AC transfer function as a prompt (magnitude and phase response plotted against frequency), the model generates a set of tokens defining the netlist, component types, values, and wiring - whose transfer function approximates the target. This process represents an unconventional application of transformer models, which are capable of learning the *language* of electronic physics just as they learn any other language. 
 
-The results yeild impressive accuracy for a relitivly small model of around 6 million parameters, evauated as a mediean error of 3.2dB and 2.1 degrees when frequency and phase response of the generated circuit are simulated and compared agasint the prompt from 1 Hz to 1GHz, sampled at 10 points per decade and across 1000 inferance circuits. In some cases, the model generates circuits whose transfer function is nearly identical to the target, but contains fewer components, indicating it has learned to optimize for the physiscs, not just replicate learned circuits.
+The results yield impressive accuracy for a relatively small model of around 7 million parameters, evaluated as a mean error of 3.2dB and 2.1 degrees when frequency and phase response of the generated circuit are simulated and compared against the prompt from 1 Hz to 1GHz, sampled at 10 points per decade and across 1000 inference circuits. In some cases, the model generates circuits whose transfer function is nearly identical to the target, but contains fewer components, indicating it has learned to optimize for the physics, not just replicate learned circuits.
 
-Filter design is fundementally a one-to-many problem, and normally involves an iterative loop for complex, multi-order transfer functions: pick a topology, simulate it, look at the response, adjust a value, simulate again. The point of training a model in this context is to let it learn the general relationship between a response shape and the topology that produces it.
+Filter design is fundamentally a one-to-many problem, and normally involves an iterative loop for complex, multi-order transfer functions: pick a topology, simulate it, look at the response, adjust a value, simulate again. The point of training a model in this context is to let it learn the general relationship between a response shape and the topology that produces it.
 
 ## Overview
 
@@ -22,9 +21,9 @@ The repo includes the circuit simulator/dataset generator, the model and its tra
 
 A topology is a plain Python dictionary of nodes, including an `in_node`/`gnd_node`/`out_node`, a list of `components` (type, node pair, value), and `filter_stages` metadata.
 
-Component values come from the E12 preferred-value series over realistic ranges (10 Ω – 1 MΩ, 1 µH – 100 mH, 1 pF – 100 µF). `random_filter_topology()` cascades 1–6 stages which may include lowpass, highpass, bandpass, or bandstop, each a standard 1st-order or 2nd-order section.
+Component values come from the E12 preferred-value series over realistic ranges (10 Ω – 8.2 MΩ, 1 µH – 820 mH, 1 pF – 820 µF). `random_filter_topology()` cascades 1–6 stages which may include lowpass, highpass, bandpass, or bandstop, each a standard 1st-order or 2nd-order section.
 
-Every topology's transfer function is simulated after generation via Modified Nodal Analysis, creating circuit/response pairs representing this ground truth. The data generation is embarresingly parallel, and so 8 seperate threads run the generation concurrently.
+Every topology's transfer function is simulated after generation via Modified Nodal Analysis, creating circuit/response pairs representing this ground truth. The data generation is embarrassingly parallel, and so 8 separate processes run the generation concurrently.
 
 An example of a tokenized circuit is shown below:
 
@@ -53,20 +52,21 @@ Adam optimizer, a learning rate of `1e-4` on a cosine schedule, and a batch size
 
 ## Evaluation (`test.py`)
 
-The test script generates random target topologies, [DOES IT PULL FROM THE JSON?] simulatess their true responses, and has the model run inference to predict a netlist from the response alone. The result is scored in two ways: structurally (component/node match against ground truth) and electrically (re-simulating the *predicted* netlist and comparing its curve to the target — the metric that actually matters, since a netlist can look structurally fine and still fail this). Both write a self-contained HTML report with interactive response charts.
+The test script generates new random target topologies, simulates their true responses, and has the model run inference to predict a netlist from the response alone. The result is scored in two ways: structurally (component/node match against ground truth) and electrically (re-simulating the *predicted* netlist and comparing its curve to the target — the metric that actually matters, since a netlist can look structurally fine and still fail this). Results are written to a self-contained HTML report with interactive response charts.
 
 
 ## Schematic rendering (`draw_schematic.py`)
 
 This script contains libraries to render the ladder-topology dictionary as a standard circuit schematic, rendering resistors, capacitors, inductors, junction dots and ground symbols. Series/shunt spacing are handled automatically. 
 
-## Embedding visualization (`umap_embedding_map.py`)
+## Embedding visualization (`plot.py`)
 
 An interactive tool that loads a checkpoint's learned token embeddings (component types, nodes, value tokens, structural markers) and reduces dimensionality to 4D with UMAP, producing a rotatable 3D scatter plus a color axis. It is useful for visualizing how the model learned a coherent geometry over its vocabulary.
 
 ## Results
 
-The results below show the model's per
+
+<img width="1634" height="1335" alt="token_embedding_umap" src="https://github.com/user-attachments/assets/dc3249d8-0559-4092-9520-8d31e5a24adf" />
 
 
 <img width="908" height="721" alt="reduced_inferance" src="https://github.com/user-attachments/assets/125439c2-38f0-4ac7-84aa-53fe834f94f8" />
